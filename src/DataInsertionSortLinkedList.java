@@ -43,7 +43,7 @@ class LinkedList {
             Node current = head;
             Node prev = null;
 
-            while (current != null && newNode.data.isAfter(current.data)) {
+            while (current != null && (newNode.data == null || newNode.data.isAfter(current.data))) {
                 prev = current;
                 current = current.next;
             }
@@ -114,17 +114,20 @@ public class DataInsertionSortLinkedList {
         double executionTimeMelhor = (endTime - startTime) / 1000.0;
         System.out.printf("Tempo de execução (Melhor Caso): %.3fs%n", executionTimeMelhor);
 
-        // Inverter Melhor Caso
-        passwordListMelhorCaso.reverse();
+        // Gerar arquivo invertido do caso médio
+        String arquivoMedioCasoInvertidoPath = "sort/passwords_data_insertionSort_medioCaso_invertido.csv";
+        gerarArquivoInvertido(arquivoMedioCasoPath, arquivoMedioCasoInvertidoPath);
 
         // Caso Pior
         startTime = System.currentTimeMillis();
-        LinkedList passwordListPiorCaso = piorCaso(passwordListMelhorCaso);
-        imprimirLista(passwordListPiorCaso, arquivoPiorCasoPath);
+        LinkedList passwordListPiorCasoInvertido = piorCaso(medioCaso(arquivoMedioCasoInvertidoPath));
+        imprimirLista(passwordListPiorCasoInvertido, "sort/passwords_data_insertionSort_piorCaso.csv");
         endTime = System.currentTimeMillis();
         double executionTimePior = (endTime - startTime) / 1000.0;
         System.out.printf("Tempo de execução (Pior Caso): %.3fs%n", executionTimePior);
+
     }
+
     public static LinkedList melhorCaso(LinkedList medioCasoList) {
         LinkedList passwordList = new LinkedList();
         Node current = medioCasoList.getHead();
@@ -152,10 +155,7 @@ public class DataInsertionSortLinkedList {
         Scanner scanner = new Scanner(new File(arquivoPassClass));
         scanner.nextLine(); // Ignorar o cabeçalho
 
-        int index = 0;
-        int count = 0;
         while (scanner.hasNextLine()) {
-            index++;
             String line = scanner.nextLine();
             String[] values = parseCSVLine(line);
 
@@ -166,31 +166,16 @@ public class DataInsertionSortLinkedList {
 
             Node newNode = new Node(password, length, data, passwordClass);
             passwordList.insert(newNode);
-            count++;
         }
 
         scanner.close();
-
-        // Retirar metade dos elementos para simular um caso médio
-        int removeCount = count / 2;
-        Node current = passwordList.getHead();
-        for (int i = 0; i < removeCount; i++) {
-            if (current == null) {
-                break;
-            }
-            current = current.next;
-        }
-        if (current != null) {
-            current.next = null;
-        }
-
         return passwordList;
     }
 
     public static void imprimirLista(LinkedList list, String filePath) throws FileNotFoundException, UnsupportedEncodingException {
         PrintWriter writer = new PrintWriter(filePath, "UTF-8");
 
-        writer.println("index,password,length,data,class");
+        writer.println(",password,length,data,class");
 
         Node current = list.getHead();
         int index = 0;
@@ -201,6 +186,43 @@ public class DataInsertionSortLinkedList {
                     current.length,
                     current.data.format(dateFormatter),
                     current.passwordClass);
+            current = current.next;
+        }
+
+        writer.close();
+    }
+
+    public static void gerarArquivoInvertido(String arquivoOriginalPath, String arquivoInvertidoPath) throws FileNotFoundException, UnsupportedEncodingException {
+        File arquivoOriginal = new File(arquivoOriginalPath);
+        File arquivoInvertido = new File(arquivoInvertidoPath);
+
+        Scanner scanner = new Scanner(arquivoOriginal);
+        PrintWriter writer = new PrintWriter(arquivoInvertido, "UTF-8");
+
+        // Copiar o cabeçalho
+        if (scanner.hasNextLine()) {
+            writer.println(scanner.nextLine());
+        }
+
+        LinkedList lines = new LinkedList();
+        int index = 1; // Manter o índice original
+
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            if (index > 1) {
+                lines.insert(new Node(line, 0, null, ""));
+            }
+            index++;
+        }
+
+        scanner.close();
+
+        lines.reverse(); // Inverter a ordem das linhas
+
+        Node current = lines.getHead();
+
+        while (current != null) {
+            writer.println(current.password);
             current = current.next;
         }
 

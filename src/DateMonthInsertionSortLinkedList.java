@@ -111,28 +111,67 @@ public class DateMonthInsertionSortLinkedList {
         LinkedList medioLinkedList = cloneLinkedList(linkedList);
         long medioTempoInicial = System.currentTimeMillis();
         medioLinkedList.insertionSort(); // Ordena o arquivo
+        medioLinkedList.printToFile(arquivoMedioCaso); // Salva o arquivo ordenado
         long medioTempoFinal = System.currentTimeMillis();
         System.out.printf("Tempo de execução (Caso Médio): %.3fs%n", (medioTempoFinal - medioTempoInicial) / 1000d);
-        medioLinkedList.printToFile(arquivoMedioCaso); // Salva o arquivo ordenado
 
         // Melhor Caso
         LinkedList melhorLinkedList = cloneLinkedList(linkedList);
         long melhorTempoInicial = System.currentTimeMillis();
         melhorLinkedList.insertionSort(); // Verifica o já ordenado
+        melhorLinkedList.printToFile(arquivoMelhorCaso); // Salva o arquivo ordenado
         long melhorTempoFinal = System.currentTimeMillis();
         System.out.printf("Tempo de execução (Melhor Caso): %.3fs%n", (melhorTempoFinal - melhorTempoInicial) / 1000d);
-        melhorLinkedList.printToFile(arquivoMelhorCaso); // Salva o arquivo ordenado
+
+        // Gerar arquivo invertido do caso médio
+        String arquivoMedioCasoInvertidoPath = "sort/passwords_data_month_insertionSort_medioCaso_invertido.csv";
+        gerarArquivoInvertido(arquivoMedioCaso, arquivoMedioCasoInvertidoPath);
 
         // Pior Caso
         invertList(linkedList);
         LinkedList piorLinkedList = cloneLinkedList(linkedList);
         long piorTempoInicial = System.currentTimeMillis();
         piorLinkedList.insertionSort(); // Ordena o arquivo que está em ordem decrescente
+        piorLinkedList.printToFile(arquivoPiorCaso); // Salva o arquivo ordenado no mesmo arquivo invertido do caso médio
         long piorTempoFinal = System.currentTimeMillis();
         System.out.printf("Tempo de execução (Pior Caso): %.3fs%n", (piorTempoFinal - piorTempoInicial) / 1000d);
-        piorLinkedList.printToFile(arquivoPiorCaso); // Salva o arquivo ordenado em ordem decrescente
     }
 
+    public static void gerarArquivoInvertido(String arquivoOriginalPath, String arquivoInvertidoPath) throws FileNotFoundException, UnsupportedEncodingException {
+        File arquivoOriginal = new File(arquivoOriginalPath);
+        File arquivoInvertido = new File(arquivoInvertidoPath);
+
+        Scanner scanner = new Scanner(arquivoOriginal);
+        PrintWriter writer = new PrintWriter(arquivoInvertido, "UTF-8");
+
+        // Copiar o cabeçalho
+        if (scanner.hasNextLine()) {
+            writer.println(scanner.nextLine());
+        }
+
+        LinkedList lines = new LinkedList();
+
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            String[] values = line.split(",");
+            lines.insert(values[1], values[2], values[3], values[4]);
+        }
+
+        scanner.close();
+
+        invertList(lines); // Inverter a ordem das linhas
+
+        Node current = lines.head;
+        int index = 0;
+
+        while (current != null) {
+            writer.println(index + "," + current.password + "," + current.length + "," + current.data + "," + current.passClass);
+            current = current.next;
+            index++;
+        }
+
+        writer.close();
+    }
     public static void readPasswordsFromFile(String filename, LinkedList linkedList) throws FileNotFoundException {
         try (Scanner scanner = new Scanner(new File(filename))) {
             scanner.nextLine(); // Skip the header line
