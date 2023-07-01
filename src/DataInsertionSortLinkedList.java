@@ -80,6 +80,78 @@ class LinkedList {
 }
 
 public class DataInsertionSortLinkedList {
+    static class Node {
+        String password;
+        int length;
+        LocalDateTime data;
+        String passwordClass;
+        Node next;
+
+        public Node(String password, int length, LocalDateTime data, String passwordClass) {
+            this.password = password;
+            this.length = length;
+            this.data = data;
+            this.passwordClass = passwordClass;
+            this.next = null;
+        }
+    }
+
+    static class LinkedList {
+        private Node head;
+        private Node tail;
+
+        public LinkedList() {
+            this.head = null;
+            this.tail = null;
+        }
+
+        public Node getHead() {
+            return head;
+        }
+
+        public void insert(Node newNode) {
+            if (head == null) {
+                head = newNode;
+                tail = newNode;
+            } else {
+                Node current = head;
+                Node prev = null;
+
+                while (current != null && (newNode.data == null || newNode.data.isAfter(current.data))) {
+                    prev = current;
+                    current = current.next;
+                }
+
+                if (prev == null) {
+                    newNode.next = head;
+                    head = newNode;
+                } else {
+                    prev.next = newNode;
+                    newNode.next = current;
+                }
+
+                if (current == null) {
+                    tail = newNode;
+                }
+            }
+        }
+
+        public void reverse() {
+            Node prev = null;
+            Node current = head;
+            Node next = null;
+
+            while (current != null) {
+                next = current.next;
+                current.next = prev;
+                prev = current;
+                current = next;
+            }
+
+            tail = head;
+            head = prev;
+        }
+    }
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
@@ -181,7 +253,7 @@ public class DataInsertionSortLinkedList {
         int index = 0;
         while (current != null) {
             writer.printf("%d,%s,%d,%s,%s%n",
-                    ++index,
+                    index++,
                     current.password,
                     current.length,
                     current.data.format(dateFormatter),
@@ -205,11 +277,11 @@ public class DataInsertionSortLinkedList {
         }
 
         LinkedList lines = new LinkedList();
-        int index = 1; // Manter o índice original
+        int index = 0; // Manter o índice original
 
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
-            if (index > 1) {
+            if (index > -1) {
                 lines.insert(new Node(line, 0, null, ""));
             }
             index++;
